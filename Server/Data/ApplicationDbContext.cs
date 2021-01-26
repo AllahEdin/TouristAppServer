@@ -8,6 +8,11 @@ namespace Server.Data
 		public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
 			: base(options)
 		{
+			if (!Database.EnsureCreated())
+			{
+				Database.Migrate();
+			}
+
 		}
 	}
 }

@@ -1,5 +1,5 @@
 using System;
-using System.IO;
+using System.Linq;
 using NSwag;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -49,7 +49,9 @@ namespace Server
 
 			services.AddDbContext<ApplicationDbContext>(options =>
 				options.UseNpgsql(
-					Configuration.GetConnectionString("DefaultConnection")));
+					//Configuration.GetConnectionString("DefaultConnection")));
+			Environment.GetEnvironmentVariable("DB_CONNECTION_STRING") ?? throw new InvalidOperationException("NO CONNECTION STRING!")));
+
 
 			services.Configure<IdentityOptions>(options =>
 			{
@@ -72,6 +74,8 @@ namespace Server
 				options.User.RequireUniqueEmail = false;
 			});
 
+
+
 			services.ConfigureApplicationCookie(options =>
 			{
 				// Cookie settings
@@ -92,15 +96,15 @@ namespace Server
 				app.UseDeveloperExceptionPage();
 			}
 
-
 			app.UseHttpsRedirection();
-
 			app.UseRouting();
 
+			#region Swagger
 
-			//Swagger
 			app.UseOpenApi(settings => settings.PostProcess = (doc, _) => doc.Schemes = new[] { OpenApiSchema.Https, OpenApiSchema.Http });
 			app.UseSwaggerUi3();
+
+			#endregion
 
 			app.UseAuthentication();
 			app.UseAuthorization();
