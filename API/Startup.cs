@@ -1,12 +1,15 @@
+using System;
 using System.Text;
 using API.Middleware;
 using Domain;
 using EFData;
 using Infrastructure.Security;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
@@ -68,55 +71,69 @@ namespace API
             services.TryAddSingleton<ISystemClock, SystemClock>();
 
 
-			//        var builder = services.AddIdentity<AppUser, AppRole>()
-			//.AddEntityFrameworkStores<DataContext>()
-
+			//var builder = services.AddIdentity<AppUser, AppRole>()
+			//	.AddEntityFrameworkStores<DataContext>()
 			//.AddSignInManager<SignInManager<AppUser>>();
 
-			var builder = services.AddIdentityCore<AppUser>();
-			var identityBuilder = new IdentityBuilder(builder.UserType, builder.Services);
+
+			var identityBuilder = services.AddIdentityCore<AppUser>();
 			identityBuilder.AddEntityFrameworkStores<DataContext>();
 			identityBuilder.AddSignInManager<SignInManager<AppUser>>();
 
-
 			var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["TokenKey"]));
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(
-                opt =>
-                    {
-                        opt.TokenValidationParameters = new TokenValidationParameters
-                                                            {
-                                                                ValidateIssuerSigningKey = true,
-                                                                IssuerSigningKey = key,
-                                                                ValidateAudience = false,
-                                                                ValidateIssuer = false,
-                                                            };
-						//opt.SaveToken = true;
+
+			services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+				.AddJwtBearer(
+					opt =>
+					{
+						opt.TokenValidationParameters = new TokenValidationParameters
+						{
+							ValidateIssuerSigningKey = true,
+							IssuerSigningKey = key,
+							ValidateAudience = false,
+							ValidateIssuer = false,
+						};
 					});
+			//.AddGoogle(options =>
+			//{
+			//	options.AuthorizationEndpoint = "https://accounts.google.com/o/oauth2/v2/auth";
 
-            services.AddScoped<IJwtGenerator, JwtGenerator>();
+			//	options.CallbackPath = "/api/Test";
+			//	IConfigurationSection googleAuthNSection =
+			//		Configuration.GetSection("Authentication:Google");
 
-			//services.AddAuthentication()
-			//	.AddGoogle(options =>
-			//	{
-			//		IConfigurationSection googleAuthNSection =
-			//			Configuration.GetSection("Authentication:Google");
+			//	options.ClientId = googleAuthNSection["ClientId"];
+			//	options.ClientSecret = googleAuthNSection["ClientSecret"];
+			//});
 
-			//		options.ClientId = googleAuthNSection["ClientId"];
-			//		options.ClientSecret = googleAuthNSection["ClientSecret"];
-			//	});
-
+			services.AddScoped<IJwtGenerator, JwtGenerator>();
 
 		}
 
 		public void Configure(IApplicationBuilder app, IHostingEnvironment env)
 		{
-            app.UseMiddleware<ErrorHandlingMiddleware>();
+			app.UseRouting();
+			app.UseMiddleware<ErrorHandlingMiddleware>();
+			
+			
+			app.UseAuthorization();
             app.UseAuthentication();
-            app.UseMvcWithDefaultRoute();
+
+
+			//app.UseMvcWithDefaultRoute();
+
 
 			//Swagger
 			app.UseOpenApi(settings => settings.PostProcess = (doc, _) => doc.Schemes = new[] { OpenApiSchema.Https, OpenApiSchema.Http });
 			app.UseSwaggerUi3();
+
+			app.UseEndpoints(endpoints =>
+			{
+				endpoints.MapControllerRoute(
+					name: "default",
+					pattern: "{controller=Home}/{action=Index}/{id?}");
+			});
+
 		}
 
 		

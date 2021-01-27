@@ -6,7 +6,7 @@ namespace API.Controllers
     public class TestController : BaseController
     {
         [HttpGet]
-		[Authorize(Roles = "Admin")]
+		[Authorize]
         public string Test()
         {
             return "succeed get";
