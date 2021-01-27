@@ -1,12 +1,8 @@
 using System.Text;
-using System.Threading.Tasks;
 using API.Middleware;
-using Application.Interfaces;
-using Application.User.Login;
 using Domain;
 using EFData;
 using Infrastructure.Security;
-using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -23,6 +19,7 @@ using Microsoft.IdentityModel.Tokens;
 using NJsonSchema;
 using NJsonSchema.Generation;
 using NSwag;
+using Services.Interfaces;
 
 namespace API
 {
@@ -56,9 +53,8 @@ namespace API
 				};
 			});
 
-            services.AddDbContext<DataContext>(opt => opt.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
-            
-            services.AddMediatR(typeof(LoginHandler).Assembly);
+            services.AddDbContext<DataContext>(opt => 
+				opt.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
 
 			services.AddMvc(option =>
 				{
@@ -71,18 +67,19 @@ namespace API
 
             services.TryAddSingleton<ISystemClock, SystemClock>();
 
-            //var builder = services.AddIdentity<AppUser, AppRole>();
-            //         var identityBuilder = new IdentityBuilder(builder.UserType, builder.Services);
-            //         identityBuilder.AddEntityFrameworkStores<DataContext>();
-            //identityBuilder.AddRoleStore<IdentityRole<string>>();
-            //         identityBuilder.AddSignInManager<SignInManager<AppUser>>();
 
-			var builder = services.AddIdentity<AppUser, AppRole>()
-				.AddEntityFrameworkStores<DataContext>()
-				
-				.AddSignInManager<SignInManager<AppUser>>();
+			//        var builder = services.AddIdentity<AppUser, AppRole>()
+			//.AddEntityFrameworkStores<DataContext>()
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["TokenKey"]));
+			//.AddSignInManager<SignInManager<AppUser>>();
+
+			var builder = services.AddIdentityCore<AppUser>();
+			var identityBuilder = new IdentityBuilder(builder.UserType, builder.Services);
+			identityBuilder.AddEntityFrameworkStores<DataContext>();
+			identityBuilder.AddSignInManager<SignInManager<AppUser>>();
+
+
+			var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["TokenKey"]));
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(
                 opt =>
                     {
@@ -93,14 +90,25 @@ namespace API
                                                                 ValidateAudience = false,
                                                                 ValidateIssuer = false,
                                                             };
-                    });
+						//opt.SaveToken = true;
+					});
 
             services.AddScoped<IJwtGenerator, JwtGenerator>();
 
-			
-        }
+			//services.AddAuthentication()
+			//	.AddGoogle(options =>
+			//	{
+			//		IConfigurationSection googleAuthNSection =
+			//			Configuration.GetSection("Authentication:Google");
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+			//		options.ClientId = googleAuthNSection["ClientId"];
+			//		options.ClientSecret = googleAuthNSection["ClientSecret"];
+			//	});
+
+
+		}
+
+		public void Configure(IApplicationBuilder app, IHostingEnvironment env)
 		{
             app.UseMiddleware<ErrorHandlingMiddleware>();
             app.UseAuthentication();

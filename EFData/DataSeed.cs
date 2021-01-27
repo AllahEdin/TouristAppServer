@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Domain;
 using Microsoft.AspNetCore.Identity;
@@ -9,9 +10,9 @@ namespace EFData
 {
     public class DataSeed
     {
-        public static async Task SeedDataAsync(DataContext context, UserManager<AppUser> userManager)
+        public static async Task<IEnumerable<AppUser>> SeedDataAsync(DataContext context, UserManager<AppUser> userManager)
         {
-            if (!userManager.Users.Any())
+            if (!EnumerableExtensions.Any(userManager.Users))
             {
                 var users = new List<AppUser>
                                 {
@@ -27,15 +28,21 @@ namespace EFData
                                             DisplayName = "TestUserSecond",
                                             UserName = "TestUserSecond",
                                             Email = "testusersecond@test.com"
-                                        }
+										}
                                 };
+
+				
 
                 foreach (var user in users)
                 {
                     await userManager.CreateAsync(user, "qazwsX123@");
                 }
-            }
-        }
+
+				return users;
+			}
+
+			return new AppUser[0];
+		}
 
 		public static async Task SeedRolesAsync(DataContext context, RoleManager<AppRole> roleManager)
 		{
@@ -53,5 +60,13 @@ namespace EFData
 				NormalizedName = "admin",
 			});
         }
+
+		public static async Task SeedUserRoles(UserManager<AppUser> userManager, IEnumerable<AppUser> users)
+		{
+			foreach (var appUser in users)
+			{
+				await userManager.AddToRoleAsync(appUser, "Admin");
+			}
+		}
 	}
 }

@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Application.Interfaces;
 using Domain;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Services.Interfaces;
 
 namespace Infrastructure.Security
 {
@@ -31,6 +31,7 @@ namespace Infrastructure.Security
 										Expires = DateTime.Now.AddDays(7),
 										SigningCredentials = credentials
             };
+
             var tokenHandler = new JwtSecurityTokenHandler();
 
             var token = tokenHandler.CreateToken(tokenDescriptor);

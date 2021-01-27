@@ -1,8 +1,6 @@
-﻿using MediatR;
-
-namespace Application.User.Registration
+﻿namespace API.Models
 {
-	public class RegistrationCommand : IRequest<User>
+	public class RegistrationUserModel
 	{
 		public string DisplayName { get; set; }
 

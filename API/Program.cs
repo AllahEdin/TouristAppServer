@@ -23,10 +23,13 @@ namespace API
                 {
                     var context = services.GetRequiredService<DataContext>();
                     var userManager = services.GetRequiredService<UserManager<AppUser>>();
-					var roleManager = services.GetRequiredService<RoleManager<AppRole>>();
+				//	var roleManager = services.GetRequiredService<RoleManager<AppRole>>();
                     context.Database.Migrate();
-                    DataSeed.SeedDataAsync(context, userManager).Wait();
-					DataSeed.SeedRolesAsync(context, roleManager).Wait();
+                    var users =
+						DataSeed.SeedDataAsync(context, userManager);
+					users.Wait();
+			//		DataSeed.SeedRolesAsync(context, roleManager).Wait();
+			//		DataSeed.SeedUserRoles(userManager, users.Result).Wait();
 				}
                 catch (Exception ex)
                 {
