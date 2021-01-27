@@ -70,11 +70,9 @@ namespace API
 
             services.TryAddSingleton<ISystemClock, SystemClock>();
 
-
 			//var builder = services.AddIdentity<AppUser, AppRole>()
 			//	.AddEntityFrameworkStores<DataContext>()
 			//.AddSignInManager<SignInManager<AppUser>>();
-
 
 			var identityBuilder = services.AddIdentityCore<AppUser>();
 			identityBuilder.AddEntityFrameworkStores<DataContext>();
@@ -94,17 +92,6 @@ namespace API
 							ValidateIssuer = false,
 						};
 					});
-			//.AddGoogle(options =>
-			//{
-			//	options.AuthorizationEndpoint = "https://accounts.google.com/o/oauth2/v2/auth";
-
-			//	options.CallbackPath = "/api/Test";
-			//	IConfigurationSection googleAuthNSection =
-			//		Configuration.GetSection("Authentication:Google");
-
-			//	options.ClientId = googleAuthNSection["ClientId"];
-			//	options.ClientSecret = googleAuthNSection["ClientSecret"];
-			//});
 
 			services.AddScoped<IJwtGenerator, JwtGenerator>();
 
@@ -112,27 +99,24 @@ namespace API
 
 		public void Configure(IApplicationBuilder app, IHostingEnvironment env)
 		{
-			app.UseRouting();
+			//app.UseRouting();
 			app.UseMiddleware<ErrorHandlingMiddleware>();
-			
-			
+
 			app.UseAuthorization();
             app.UseAuthentication();
 
-
-			//app.UseMvcWithDefaultRoute();
-
+			app.UseMvcWithDefaultRoute();
 
 			//Swagger
 			app.UseOpenApi(settings => settings.PostProcess = (doc, _) => doc.Schemes = new[] { OpenApiSchema.Https, OpenApiSchema.Http });
 			app.UseSwaggerUi3();
 
-			app.UseEndpoints(endpoints =>
-			{
-				endpoints.MapControllerRoute(
-					name: "default",
-					pattern: "{controller=Home}/{action=Index}/{id?}");
-			});
+			//app.UseEndpoints(endpoints =>
+			//{
+			//	endpoints.MapControllerRoute(
+			//		name: "default",
+			//		pattern: "{controller=Home}/{action=Index}/{id?}");
+			//});
 
 		}
 

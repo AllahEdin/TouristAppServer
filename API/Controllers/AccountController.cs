@@ -76,6 +76,12 @@ namespace API.Controllers
 
 				var xxx =await 
 					client.PostAsync("https://localhost:44397/TokenForGoogleUser", c);
+
+				var userWithTokenStr=
+					await xxx.Content.ReadAsStringAsync();
+
+				var userWithToken =
+					JsonConvert.DeserializeObject<UserModel>(userWithTokenStr);
 			}
 
 			return Ok();
